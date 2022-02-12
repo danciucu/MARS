@@ -1,3 +1,4 @@
+from ezdxf import readfile
 import tkinter, tkinter.filedialog
 import pandas as pd
 import globalvars
@@ -105,16 +106,26 @@ class Tab1(tkinter.Tk):
         self.deleteall_button = tkinter.Button(self.command_frame, text = "Delete All Points", state = tkinter.DISABLED, command = self.deleteall_records)
         self.deleteall_button.grid(row = 0, column = 2, padx = 10, pady = 10)
 
+        ## error message if input is not a float()
+        self.error = tkinter.Label(self.tab1, text = "Error: Please imput a rational number!", foreground = "#f0f0ed")
+        self.error.pack()
+
     def units_update(self, arg):
         arg = self.units_ddlistValue.get()
-        globalvars.user_units = arg # store the value selected by the user into a global variable
+
+        # store the value selected by the user into a global variable
+        globalvars.user_units = arg 
 
         # enable selection buttons
         self.selection1_button.config(state = tkinter.NORMAL)
         self.selection2_button.config(state = tkinter.NORMAL)
 
-        array = ["No", "X [" + arg + "]", "Y [" + arg + "]"] # array to change the titles of the table and add units
-        print(arg)
+        # change the units for x and y
+        array = ["No", "X [" + arg + "]", "Y [" + arg + "]"] 
+        self.table.heading("x", text = array[1])
+        self.table.heading("y", text = array[2])
+        self.x_label.config(text = array[1])
+        self.y_label.config(text = array[2])
     
     def selection12_selected(self):
         if self.selection12_Value.get() == 1:
@@ -126,6 +137,10 @@ class Tab1(tkinter.Tk):
             # enable path functions
             self.path_entry.config(state = tkinter.NORMAL)
             self.path_button.config(state = tkinter.NORMAL)
+
+            # delete all the values frp, the table
+            for record in self.table.get_children():
+                self.table.delete(record)
 
             # change the table style
             self.style.configure("Treeview.Heading", foreground='grey')
@@ -143,6 +158,9 @@ class Tab1(tkinter.Tk):
             self.input_button.config(state = tkinter.DISABLED)
             self.delete_button.config(state = tkinter.DISABLED)
             self.deleteall_button.config(state = tkinter.DISABLED)
+
+            # change the color of the error back to gray to hide it
+            self.error.config(foreground = "#f0f0ed")
 
         else:
             # delete all the data recored
@@ -173,15 +191,76 @@ class Tab1(tkinter.Tk):
             self.deleteall_button.config(state = tkinter.NORMAL)
 
     def open_path(self):
-        print("Hello")
+        # variable to store the path user opens
+        path = tkinter.filedialog.askopenfilename(filetypes = (
+            ("CSV Files", "*.CSV"),
+            ("DXF Files", "*.DXF")
+        ))
+        
+        # fill the entry bar with the path
+        self.path_entry.insert(tkinter.END, path)
+
+        try:
+            doc = readfile(path)
+            msp = doc.modelspace()
+            query = msp.query("INSERT[name=='CROSS']")
+
+        except OSError:
+            arch_data = pd.read_csv(path, header=0, names=["x", "y"])
+            total_cols = len(arch_data.axes[1])
+            globalvars.array_x = arch_data['x'].values
+            globalvars.array_y = arch_data['y'].values
+            globalvars.count = len(globalvars.array_x)
+
+        
     
     def input_record(self):
-        print("Hello")
+        # define a bool variable to check if input is float()
+        check = False
+        # change the color of the error back to gray to hide it
+        self.error.config(foreground = "#f0f0ed")
+        try:
+            input_x = float(self.x_entry.get())
+            input_y = float(self.y_entry.get())
+            check = True
+        except ValueError:
+            # make the error "appear" since input is not a float()
+            self.error.config(foreground = "black")
+        
+        # update units
+        if check == True:
+            self.table.insert(parent = '', index = 'end', iid = globalvars.count, text = '', values = (globalvars.count + 1, input_x, input_y))
+            # clean the input boxes
+            self.x_entry.delete(0, tkinter.END)
+            self.y_entry.delete(0, tkinter.END)
+
+            # upadte the global variables
+            globalvars.count += 1
+            globalvars.array_x.append(input_x)
+            globalvars.array_y.append(input_y)
+
 
     def delete_record(self):
-        print("Hello") 
+        # check if there are any values left to delete
+        if globalvars.count == 0:
+            return
+        # delete the last value from the table
+        else:
+            self.table.delete(globalvars.count - 1)
+
+            # update the global variables
+            globalvars.count -= 1
+            globalvars.array_x.pop(globalvars.count - 1)
+            globalvars.array_y.pop(globalvars.count - 1)
 
     def deleteall_records(self):
-        print("Hello")
+        # delete all values from the table
+        for record in self.table.get_children():
+            self.table.delete(record)
+        
+        # update the global variables
+        globalvars.count = 0
+        globalvars.array_x = []
+        globalvars.array_y = []
 
 

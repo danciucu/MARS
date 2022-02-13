@@ -1,5 +1,4 @@
-import tkinter
-import ttkthemes
+import tkinter, ttkthemes
 import tab1, tab2, tab3
 
 class MARS(ttkthemes.ThemedTk):

@@ -1,5 +1,5 @@
 def init():
-    global user_units, count, array_x, array_y, coef_units, points_x, points_y, points_xyz, no, all_units
+    global user_units, count, array_x, array_y, coef_units, points_x, points_y, points_xyz, no, all_units, max_degree
 
     no = 9
 
@@ -11,6 +11,7 @@ def init():
     points_y = [0] * no
     points_xyz = [0] * no * 3
     coef_units = 0
+    max_degree = 0
 
 
 

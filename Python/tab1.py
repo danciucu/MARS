@@ -1,6 +1,7 @@
 import tkinter, tkinter.filedialog, ttkthemes
-from ezdxf import readfile
+
 import pandas as pd
+import ezdxf
 
 import globalvars
 
@@ -207,37 +208,44 @@ class Tab1(ttkthemes.ThemedTk):
     def open_path(self):
         # variable to store the path user opens
         path = tkinter.filedialog.askopenfilename(filetypes = (
-            ("CSV Files", "*.CSV"),
-            ("DXF Files", "*.DXF")
+            ("DXF Files", "*.DXF"),
+            ("CSV Files", "*.CSV")
         ))
         
         # fill the entry bar with the path
         self.path_entry.insert(tkinter.END, path)
 
         try:
-            doc = readfile(path)
+            # try to see if the file is DXF type
+            doc = ezdxf.readfile(path)
             msp = doc.modelspace()
+            # check for the "crosses" in the DXF file
             query = msp.query("INSERT[name=='CROSS']")
 
             array_x = []
             array_y = []
             array_z = []
-
+            
+            # populate local arrays with the values of the points
             for point in query:
-                array_x.append(point.dxf.insert.x)
-                array_y.append(point.dxf.insert.y)
-                array_z.append(point.dxf.insert.z)
+                array_x.append(float(point.dxf.insert.x))
+                array_y.append(float(point.dxf.insert.y))
+                array_z.append(float(point.dxf.insert.z))
 
-                origin_x = array_x[0]
-                origin_y = array_y[0]
-                origin_z = array_z[0]
-                globalvars.count = len(array_x)
+            # set the origin to the first element
+            origin_x = array_x[0]
+            origin_y = array_y[0]
+            origin_z = array_z[0]
+            # update the global variable
+            globalvars.count = len(array_x)
 
+            # update local arrays by origin (and take them always positive - for now)
             for i in range(globalvars.count):
-                array_x[i] = array_x[i] - origin_x
-                array_y[i] = array_y[i] - origin_y
-                array_z[i] = array_z[i] - origin_z
+                array_x[i] = abs(array_x[i] - origin_x)
+                array_y[i] = abs(array_y[i] - origin_y)
+                array_z[i] = abs(array_z[i] - origin_z)
 
+            # check for the final element and if it's the biggest from all arrays, then that's globalvars.array_x
             if (abs(array_x[globalvars.count - 1]) > abs(array_y[globalvars.count - 1])) and (abs(array_x[globalvars.count - 1]) > abs(array_z[globalvars.count - 1])):
                 globalvars.array_x = array_x
             elif (abs(array_y[globalvars.count - 1]) > abs(array_x[globalvars.count - 1])) and (abs(array_y[globalvars.count - 1]) > abs(array_z[globalvars.count - 1])):
@@ -245,6 +253,7 @@ class Tab1(ttkthemes.ThemedTk):
             else:
                 globalvars.array_x = array_z
 
+            # check if first and last elements are equal and next pair is not equal, then that's globalvars.array_y
             if int(array_x[0]) == int(array_x[globalvars.count - 1])  and int(array_x[1]) != int(array_x[globalvars.count - 2]):
                 globalvars.array_y = array_x
             elif int(array_y[0]) == int(array_y[globalvars.count - 1]) and int(array_y[1]) != int(array_y[globalvars.count - 2]):
@@ -253,8 +262,9 @@ class Tab1(ttkthemes.ThemedTk):
                 globalvars.array_y = array_z
 
         except OSError:
+            # if not DXF then CSV and open the csv fie
             arch_data = pd.read_csv(path, header=0, names=["x", "y"])
-            total_cols = len(arch_data.axes[1])
+            # update global variables
             globalvars.array_x = arch_data['x'].values
             globalvars.array_y = arch_data['y'].values
             globalvars.count = len(globalvars.array_x)
@@ -309,5 +319,3 @@ class Tab1(ttkthemes.ThemedTk):
         globalvars.count = 0
         globalvars.array_x = []
         globalvars.array_y = []
-
-

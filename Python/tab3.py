@@ -1,4 +1,5 @@
 import tkinter, tkinter.filedialog, ttkthemes
+
 import globalvars
 
 class Tab3(ttkthemes.ThemedTk):

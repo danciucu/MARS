@@ -1,15 +1,11 @@
-import tkinter, tkinter.filedialog
-import ttkthemes
+import tkinter, tkinter.filedialog, ttkthemes
 
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.backend_bases import key_press_handler
-
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
+
 import globalvars
 
 class Tab2(ttkthemes.ThemedTk):

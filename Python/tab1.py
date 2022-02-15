@@ -20,7 +20,7 @@ class Tab1(ttkthemes.ThemedTk):
         self.units_label.pack()
 
         self.units_ddlistValue = tkinter.StringVar()
-        self.units_ddlist = tkinter.ttk.Combobox(self.tab1, textvariable = self.units_ddlistValue, values = ["mm", "cm", "dm", "m", "dam", "hm", "km"])
+        self.units_ddlist = tkinter.ttk.Combobox(self.tab1, textvariable = self.units_ddlistValue, values = ["mm", "cm", "m", "in", "ft", "yd"])
         self.units_ddlist.pack()
         self.units_ddlist.bind("<<ComboboxSelected>>", self.units_update)
 
@@ -129,6 +129,13 @@ class Tab1(ttkthemes.ThemedTk):
         # store the value selected by the user into a global variable
         globalvars.user_units = arg 
 
+        # define a dictionary (hash table) for searching the units
+        user_units_dict = {"mm": 1, "cm": 10, "m": 1000, "in": 25.4, "ft": 304.8, "yd": 914.4}
+
+        # search for the magnification factor
+        globalvars.units_coef = user_units_dict[globalvars.user_units]
+        print(globalvars.units_coef)
+                
         # enable selection buttons
         self.selection1_button.config(state = tkinter.NORMAL)
         self.selection2_button.config(state = tkinter.NORMAL)

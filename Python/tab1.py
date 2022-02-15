@@ -221,29 +221,59 @@ class Tab1(ttkthemes.ThemedTk):
             msp = doc.modelspace()
             # check for the "crosses" in the DXF file
             query = msp.query("INSERT[name=='CROSS']")
-
+            
+            # a variable to count the points
+            count = 0
+            # arrays to store the coorinates of the points locally
             array_x = []
             array_y = []
             array_z = []
+            # variables to store the first coodinate and move the arch back to origin
+            origin_x = 0
+            origin_y = 0
+            origin_z = 0
+            # variables to store the second element after positioning again to origin
+            second_x = 0
+            second_y = 0
+            second_z = 0
             
             # populate local arrays with the values of the points
             for point in query:
                 array_x.append(float(point.dxf.insert.x))
                 array_y.append(float(point.dxf.insert.y))
                 array_z.append(float(point.dxf.insert.z))
+                # set the origin to the first element
+                if count == 0:
+                    origin_x = array_x[0]
+                    origin_y = array_y[0]
+                    origin_z = array_z[0]
+                # set up the second element
+                if count == 1:
+                    second_x = array_x[count] - origin_x
+                    second_y = array_y[count] - origin_y
+                    second_z = array_z[count] - origin_z
+                # check the sign of second element and swich the sign if negative
+                # set the local arrays to the origin and start with (0, 0, 0)
+                ## for array_x
+                if second_x < 0:
+                    array_x[count] = -(array_x[count] - origin_x)
+                else:
+                    array_x[count] = array_x[count] - origin_x
+                ## for array_y
+                if second_y < 0:
+                    array_y[count] = -(array_y[count] - origin_y)
+                else:
+                    array_y[count] = array_y[count] - origin_y
+                ## for array_z
+                if second_z < 0:
+                    array_z[count] = -(array_z[count] - origin_z)
+                else:
+                    array_z[count] = array_z[count] - origin_z
+                
+                count += 1
 
-            # set the origin to the first element
-            origin_x = array_x[0]
-            origin_y = array_y[0]
-            origin_z = array_z[0]
             # update the global variable
-            globalvars.count = len(array_x)
-
-            # update local arrays by origin (and take them always positive - for now)
-            for i in range(globalvars.count):
-                array_x[i] = abs(array_x[i] - origin_x)
-                array_y[i] = abs(array_y[i] - origin_y)
-                array_z[i] = abs(array_z[i] - origin_z)
+            globalvars.count = count
 
             # check for the final element and if it's the biggest from all arrays, then that's globalvars.array_x
             if (abs(array_x[globalvars.count - 1]) > abs(array_y[globalvars.count - 1])) and (abs(array_x[globalvars.count - 1]) > abs(array_z[globalvars.count - 1])):
@@ -269,8 +299,6 @@ class Tab1(ttkthemes.ThemedTk):
             globalvars.array_y = arch_data['y'].values
             globalvars.count = len(globalvars.array_x)
 
-        
-    
     def input_record(self):
         # define a bool variable to check if input is float()
         check = False
@@ -295,7 +323,6 @@ class Tab1(ttkthemes.ThemedTk):
             globalvars.count += 1
             globalvars.array_x.append(input_x)
             globalvars.array_y.append(input_y)
-
 
     def delete_record(self):
         # check if there are any values left to delete

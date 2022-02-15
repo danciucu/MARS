@@ -126,15 +126,13 @@ class Tab1(ttkthemes.ThemedTk):
     def units_update(self, arg):
         arg = self.units_ddlistValue.get()
 
-        # store the value selected by the user into a global variable
-        globalvars.user_units = arg 
-
         # define a dictionary (hash table) for searching the units
         user_units_dict = {"mm": 1, "cm": 10, "m": 1000, "in": 25.4, "ft": 304.8, "yd": 914.4}
-
-        # search for the magnification factor
+        
+        # store the value selected by the user into a global variable
+        globalvars.user_units = arg 
+        # search for the magnification factor and update global variable
         globalvars.units_coef = user_units_dict[globalvars.user_units]
-        print(globalvars.units_coef)
                 
         # enable selection buttons
         self.selection1_button.config(state = tkinter.NORMAL)

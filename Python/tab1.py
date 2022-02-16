@@ -20,7 +20,7 @@ class Tab1(ttkthemes.ThemedTk):
         self.units_label.pack()
 
         self.units_ddlistValue = tkinter.StringVar()
-        self.units_ddlist = tkinter.ttk.Combobox(self.tab1, textvariable = self.units_ddlistValue, values = ["mm", "cm", "m", "in", "ft", "yd"])
+        self.units_ddlist = tkinter.ttk.Combobox(self.tab1, textvariable = self.units_ddlistValue, values = ["mm", "cm", "m", "in", "ft", "yd"], justify='center')
         self.units_ddlist.pack()
         self.units_ddlist.bind("<<ComboboxSelected>>", self.units_update)
 
@@ -99,10 +99,10 @@ class Tab1(ttkthemes.ThemedTk):
         self.y_label = tkinter.ttk.Label(self.input_frame, text = "Y [-]", state = tkinter.DISABLED)
         self.y_label.grid(row = 0, column = 1)
 
-        self.x_entry = tkinter.ttk.Entry(self.input_frame, state = tkinter.DISABLED)
+        self.x_entry = tkinter.ttk.Entry(self.input_frame, state = tkinter.DISABLED, justify = 'center')
         self.x_entry.grid(row = 1, column = 0)
 
-        self.y_entry = tkinter.ttk.Entry(self.input_frame, state = tkinter.DISABLED)
+        self.y_entry = tkinter.ttk.Entry(self.input_frame, state = tkinter.DISABLED, justify = 'center')
         self.y_entry.grid(row = 1, column = 1)
 
         # command frame
@@ -163,7 +163,6 @@ class Tab1(ttkthemes.ThemedTk):
 
             # change the table style
             self.style.configure("Treeview.Heading", foreground='grey')
-            self.table.state(("disabled",))
             self.style.configure("Treeview", background = "gray",
                         fieldbackground = "gray", foreground = "gray")
             
@@ -195,7 +194,6 @@ class Tab1(ttkthemes.ThemedTk):
 
             # change the table style
             self.style.configure("Treeview.Heading", foreground='black')
-            self.table.state(("!disabled",))
             self.style.configure("Treeview", background = "white",
                         fieldbackground = "white", foreground = "black")
 
@@ -319,7 +317,12 @@ class Tab1(ttkthemes.ThemedTk):
         
         # update units
         if check == True:
+            # insert values with center alignment
+            self.table.column("no" , anchor = tkinter.CENTER)
+            self.table.column("x" , anchor = tkinter.CENTER)
+            self.table.column("y", anchor = tkinter.CENTER)
             self.table.insert(parent = '', index = 'end', iid = globalvars.count, text = '', values = (globalvars.count + 1, input_x, input_y))
+
             # clean the input boxes
             self.x_entry.delete(0, tkinter.END)
             self.y_entry.delete(0, tkinter.END)
@@ -328,6 +331,9 @@ class Tab1(ttkthemes.ThemedTk):
             globalvars.count += 1
             globalvars.array_x.append(input_x)
             globalvars.array_y.append(input_y)
+
+            # move to the bottom of the table
+            self.table.yview_moveto(globalvars.count + 1)
 
     def delete_record(self):
         # check if there are any values left to delete

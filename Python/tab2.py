@@ -58,7 +58,7 @@ class Tab2(ttkthemes.ThemedTk):
         self.canvas = FigureCanvasTkAgg(self.fig, master = self.tab2)
         self.canvas.get_tk_widget().pack(side = tkinter.BOTTOM, fill = tkinter.BOTH, expand = True)
         self.canvas.draw()
-    
+
     def selection12_selected(self):
         # update global variable
         if globalvars.count == 0:
@@ -87,7 +87,7 @@ class Tab2(ttkthemes.ThemedTk):
             # enable seletion 2 input & plot button
             self.selection2_entry.config(state = tkinter.NORMAL)
             self.plot_button.config(state = tkinter.NORMAL)
-    
+
     def plot(self):
         # define a bool variable
         test = False
@@ -102,7 +102,16 @@ class Tab2(ttkthemes.ThemedTk):
         if self.selection12_Value.get() != 1:
             try:
                 degree = int(self.selection2_entry.get())
-                test = True
+                # check if the degree is positive
+                if degree < 0:
+                    # update the plot error
+                    self.plot_errormsg.config(text = "Error: Please input a natural number! Positive number are not natural!" ,foreground = "black")
+                elif degree > globalvars.max_degree:
+                    # update the plot error
+                    self.plot_errormsg.config(text = "Error: The maximum degree of the polynomial is " + str(globalvars.max_degree) +". Reduce the degree!", foreground = "black")
+                else:
+                    test = True
+                    
             except ValueError:
                 # update the plot error
                 self.plot_errormsg.config(text = "Error: Please input a natural number!" ,foreground = "black")
@@ -111,76 +120,47 @@ class Tab2(ttkthemes.ThemedTk):
             if test == True:
                 # change the text of the plot button
                 self.plot_button.config(text = "Replot")
-
-                if degree > globalvars.max_degree:
-                    # update the plot error
-                    self.plot_errormsg.config(text = "Error: The maximum degree of the polynomial is " + str(globalvars.max_degree) +". Reduce the degree!", foreground = "black")
-                else:
-                    # "hide" plot error
-                    self.plot_errormsg.config(foreground = "#f5f4f2")
-
-                    # make the plot "appear"
-                    self.fig.patch.set_facecolor("white")
-                    self.ax.set_facecolor("white")
-                    plt.axis("on")
-
-                    # clear the previous plot and update it
-                    self.ax.clear()
-                    polynome = np.polyfit(globalvars.array_x, globalvars.array_y, degree)
-                    p = np.poly1d(polynome)
-                    xp = np.linspace(0, max(globalvars.array_x), 100)
-                    self.ax.plot(globalvars.array_x, globalvars.array_y, 'o', label = 'Input Points')
-                    self.ax.plot(xp, p(xp), label = 'Interpolated Shape')
-                    plt.xlabel("Span [m]")
-                    plt.ylabel("Height [m]")
-                    plt.xlim(0, max(globalvars.array_x))
-                    plt.ylim(0, max(globalvars.array_y) * 2)
-                    plt.legend(loc = 'upper right')
-
-                    # update canvas
-                    self.canvas.get_tk_widget().pack(side = tkinter.BOTTOM, fill = tkinter.BOTH, expand = True)
-                    self.canvas.draw()
-
-                    # prepare the location of the points for AutoCAD draw
-                    for i in range(globalvars.no):
-                        globalvars.points_x[i] = i * max(globalvars.array_x) / 8
-                        globalvars.points_y[i] = p(globalvars.points_x[i])
-                        globalvars.points_xyz[i * 3] =globalvars. points_x[i]
-                        if i != globalvars.no - 1:
-                            globalvars.points_xyz[(i * 3) + 1] = globalvars.points_y[i]
-                            globalvars.points_xyz[(i * 3) + 2] = 0
+                # "hide" plot error
+                self.plot_errormsg.config(foreground = "#f5f4f2")
+                # plot the graph
+                self.graph(degree)
             
         else:
             # change the text of the plot button
             self.plot_button.config(text = "Replot")
+            # plot the graph
+            self.graph(globalvars.max_degree)
+        
+    def graph(self, arg):
+        # define a variable to store the degree
+        degree = arg
+        # make the plot "appear"
+        self.fig.patch.set_facecolor("white")
+        self.ax.set_facecolor("white")
+        plt.axis("on")
 
-            # make the plot "appear"
-            self.fig.patch.set_facecolor("white")
-            self.ax.set_facecolor("white")
-            plt.axis("on")
+        # clear the previous plot and update it
+        self.ax.clear()
+        polynome = np.polyfit(globalvars.array_x * globalvars.units_coef, globalvars.array_y * globalvars.units_coef, degree)
+        p = np.poly1d(polynome)
+        xp = np.linspace(0, max(globalvars.array_x * globalvars.units_coef), 100)
+        self.ax.plot(globalvars.array_x * globalvars.units_coef, globalvars.array_y * globalvars.units_coef, 'o', label = 'Input Points')
+        self.ax.plot(xp, p(xp), label = 'Interpolated Shape')
+        plt.xlabel("Span " + globalvars.user_units)
+        plt.ylabel("Height " + globalvars.user_units)
+        plt.xlim(0, max(globalvars.array_x * globalvars.units_coef))
+        plt.ylim(0, max(globalvars.array_y * globalvars.units_coef) * 2)
+        plt.legend(loc = 'upper right')
 
-            # clear the previous plot and update it
-            self.ax.clear()
-            polynome = np.polyfit(globalvars.array_x, globalvars.array_y, globalvars.max_degree)
-            p = np.poly1d(polynome)
-            xp = np.linspace(0, max(globalvars.array_x), 100)
-            self.ax.plot(globalvars.array_x, globalvars.array_y, 'o', label = 'Input Points')
-            self.ax.plot(xp, p(xp), label = 'Interpolated Shape')
-            plt.xlabel("Span [m]")
-            plt.ylabel("Height [m]")
-            plt.xlim(0, max(globalvars.array_x))
-            plt.ylim(0, max(globalvars.array_y) * 2)
-            plt.legend(loc = 'upper right')
+        # update canvas
+        self.canvas.get_tk_widget().pack(side = tkinter.BOTTOM, fill = tkinter.BOTH, expand = True)
+        self.canvas.draw()
 
-            # update canvas
-            self.canvas.get_tk_widget().pack(side = tkinter.BOTTOM, fill = tkinter.BOTH, expand = True)
-            self.canvas.draw()
-
-            # prepare the location of the points for AutoCAD draw
-            for i in range(globalvars.no):
-                globalvars.points_x[i] = i * max(globalvars.array_x) / 8
-                globalvars.points_y[i] = p(globalvars.points_x[i])
-                globalvars.points_xyz[i * 3] =globalvars. points_x[i]
-                if i != globalvars.no - 1:
-                    globalvars.points_xyz[(i * 3) + 1] = globalvars.points_y[i]
-                    globalvars.points_xyz[(i * 3) + 2] = 0
+        # prepare the location of the points for AutoCAD draw
+        for i in range(globalvars.no):
+            globalvars.points_x[i] = i * max(globalvars.array_x * globalvars.units_coef) / 8
+            globalvars.points_y[i] = p(globalvars.points_x[i])
+            globalvars.points_xyz[i * 3] =globalvars. points_x[i]
+            if i != globalvars.no - 1:
+                globalvars.points_xyz[(i * 3) + 1] = globalvars.points_y[i]
+                globalvars.points_xyz[(i * 3) + 2] = 0

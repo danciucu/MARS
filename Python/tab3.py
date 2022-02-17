@@ -41,10 +41,22 @@ class Tab3(ttkthemes.ThemedTk):
         self.cad_button.pack()
 
     def folder_path(self):
-        print("Hello")
+        # open the file path
+        folder_path = tkinter.filedialog.askdirectory()
+        # update the input entry box
+        self.input_entry.insert(tkinter.END, folder_path)
 
     def generate_csv(self):
-        print("Hello")
+        # get the file path
+        csv_path = self.input_entry.get()
+        # create a CSV file named "Arch 1"
+        with open(csv_path + "/Arch1.csv", "w", newline = "") as my_csv:
+            writer = csv.writer(my_csv)
+            # name the first row as X [units] and Y [units]
+            writer.writerow(["X [" + globalvars.user_units + "]", "Y [" + globalvars.user_units + "]"])
+            for i in range(globalvars.count):
+                # add the values
+                writer.writerow([globalvars.array_x[i], globalvars.array_y[i]])
     
     def generate_cad(self):
         print("Hello")

@@ -59,4 +59,13 @@ class Tab3(ttkthemes.ThemedTk):
                 writer.writerow([globalvars.array_x[i], globalvars.array_y[i]])
     
     def generate_cad(self):
-        print("Hello")
+        # open the AutoCAD file
+        AutoCAD = win32com.client.Dispatch("AutoCAD.Application")
+        # variable to refer to the app
+        acad = pyautocad.Autocad(create_if_not_exists = False)
+        # aDouble returns array.array of doubles (‘d’ code) for passing to AutoCAD
+        p1 = pyautocad.aDouble(globalvars.points_xyz)
+        # create a spline through the points of interest with 0 curvature at the ends
+        sp1 = acad.model.AddSpline(p1, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))
+        # ???
+        AutoCAD.Visible = True

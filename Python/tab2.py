@@ -133,7 +133,7 @@ class Tab2(ttkthemes.ThemedTk):
         
     def graph(self, arg):
         # define a variable to store the degree
-        degree = arg
+        globalvars.user_degree = arg
         # make the plot "appear"
         self.fig.patch.set_facecolor("white")
         self.ax.set_facecolor("white")
@@ -141,26 +141,17 @@ class Tab2(ttkthemes.ThemedTk):
 
         # clear the previous plot and update it
         self.ax.clear()
-        polynome = np.polyfit(globalvars.array_x * globalvars.units_coef, globalvars.array_y * globalvars.units_coef, degree)
+        polynome = np.polyfit(globalvars.array_x, globalvars.array_y, globalvars.user_degree)
         p = np.poly1d(polynome)
-        xp = np.linspace(0, max(globalvars.array_x * globalvars.units_coef), 100)
-        self.ax.plot(globalvars.array_x * globalvars.units_coef, globalvars.array_y * globalvars.units_coef, 'o', label = 'Input Points')
+        xp = np.linspace(0, max(globalvars.array_x), 100)
+        self.ax.plot(globalvars.array_x, globalvars.array_y, 'o', label = 'Input Points')
         self.ax.plot(xp, p(xp), label = 'Interpolated Shape')
-        plt.xlabel("Span " + globalvars.user_units)
-        plt.ylabel("Height " + globalvars.user_units)
-        plt.xlim(0, max(globalvars.array_x * globalvars.units_coef))
-        plt.ylim(0, max(globalvars.array_y * globalvars.units_coef) * 2)
+        plt.xlabel("Span [" + globalvars.user_units + "]")
+        plt.ylabel("Height [" + globalvars.user_units + "]")
+        plt.xlim(0, max(globalvars.array_x))
+        plt.ylim(0, max(globalvars.array_y) * 2)
         plt.legend(loc = 'upper right')
 
         # update canvas
         self.canvas.get_tk_widget().pack(side = tkinter.BOTTOM, fill = tkinter.BOTH, expand = True)
         self.canvas.draw()
-
-        # prepare the location of the points for AutoCAD draw
-        for i in range(globalvars.no):
-            globalvars.points_x[i] = i * max(globalvars.array_x * globalvars.units_coef) / 8
-            globalvars.points_y[i] = p(globalvars.points_x[i])
-            globalvars.points_xyz[i * 3] =globalvars. points_x[i]
-            if i != globalvars.no - 1:
-                globalvars.points_xyz[(i * 3) + 1] = globalvars.points_y[i]
-                globalvars.points_xyz[(i * 3) + 2] = 0

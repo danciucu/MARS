@@ -148,6 +148,8 @@ class Tab1(ttkthemes.ThemedTk):
     def selection12_selected(self):
         # if first selection button pressed
         if self.selection12_Value.get() == 1:
+            # clean path function
+            self.path_entry.delete(0, 'end')
             # delete all the data recored
             globalvars.count = 0
             globalvars.array_x = []
@@ -191,6 +193,10 @@ class Tab1(ttkthemes.ThemedTk):
             self.path_entry.delete(0, 'end')
             self.path_entry.config(state = tkinter.DISABLED)
             self.path_button.config(state = tkinter.DISABLED)
+
+            # delete all the values frp, the table
+            for record in self.table.get_children():
+                self.table.delete(record)
 
             # change the table style
             self.style.configure("Treeview.Heading", foreground='black')

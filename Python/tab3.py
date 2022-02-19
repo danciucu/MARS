@@ -3,6 +3,7 @@ import tkinter, tkinter.filedialog, ttkthemes
 import csv
 import pyautocad
 import win32com.client
+import numpy as np
 
 import globalvars
 
@@ -59,6 +60,20 @@ class Tab3(ttkthemes.ThemedTk):
                 writer.writerow([globalvars.array_x[i], globalvars.array_y[i]])
     
     def generate_cad(self):
+        # update units for the x and y coordinates
+        array_x_units = [elements * globalvars.units_coef for elements in globalvars.array_x]
+        array_y_units = [elements * globalvars.units_coef for elements in globalvars.array_y]
+        # recreate the magnified shape
+        polynome = np.polyfit(array_x_units, array_y_units, globalvars.user_degree)
+        p = np.poly1d(polynome)
+        # prepare the location of the points for AutoCAD draw
+        for i in range(globalvars.no):
+            globalvars.points_x[i] = i * max(array_x_units) / 8
+            globalvars.points_y[i] = p(globalvars.points_x[i])
+            globalvars.points_xyz[i * 3] =globalvars. points_x[i]
+            if i != globalvars.no - 1:
+                globalvars.points_xyz[(i * 3) + 1] = globalvars.points_y[i]
+                globalvars.points_xyz[(i * 3) + 2] = 0 
         # open the AutoCAD file
         AutoCAD = win32com.client.Dispatch("AutoCAD.Application")
         # variable to refer to the app

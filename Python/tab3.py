@@ -65,7 +65,19 @@ class Tab3(ttkthemes.ThemedTk):
         self.pier_width_label2 = tkinter.ttk.Label(self.pier_frame, text = "mm")
         self.pier_width_label2.grid(row = 1, column = 2)
 
-        # pier error message
+        ## arch barrel text
+        self.archbarrel_label1 = tkinter.ttk.Label(self.pier_frame, text = "Arch Barrel Thickness :")
+        self.archbarrel_label1.grid(row = 2, column = 0)
+
+        ## arch barrel entry box
+        self.archbarrel_entry = tkinter.ttk.Entry(self.pier_frame, width = 10, justify = 'center')
+        self.archbarrel_entry.grid(row = 2, column = 1)
+        
+        ## arch barrel units
+        self.archbarrel_label2 = tkinter.ttk.Label(self.pier_frame, text = "mm")
+        self.archbarrel_label2.grid(row = 2, column = 2)
+
+        # pier & arch barrel error message
         self.pier_error = tkinter.ttk.Label(self.tab3, text = "Error: Please input a rational number!", foreground = "#f5f4f2")
         self.pier_error.pack()
 
@@ -99,6 +111,7 @@ class Tab3(ttkthemes.ThemedTk):
         try: 
             pier_height = float(self.pier_height_entry.get())
             pier_width = float(self.pier_width_entry.get())
+            arch_barrel = float(self.archbarrel_entry.get())
             test = True
         except ValueError:
             self.pier_error.config(foreground = "black")
@@ -146,4 +159,4 @@ class Tab3(ttkthemes.ThemedTk):
             p1_arch = pyautocad.aDouble(globalvars.points_xyz)
             # create a spline through the points of interest with 0 curvature at the ends
             sp1 = acad.model.AddSpline(p1_arch, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))
-            sp2 = sp1.Offset(-700.0)
+            sp2 = sp1.Offset(-arch_barrel)

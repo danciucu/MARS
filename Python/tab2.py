@@ -38,7 +38,7 @@ class Tab2(ttkthemes.ThemedTk):
         self.selection2_button.grid(row = 1, column = 0)     
 
         ## selection 2 degree entry
-        self.selection2_entry = tkinter.ttk.Entry(self.selection12_frame, width = 5, state = tkinter.DISABLED)
+        self.selection2_entry = tkinter.ttk.Entry(self.selection12_frame, width = 5, state = tkinter.DISABLED, justify = 'center')
         self.selection2_entry.grid(row = 1, column = 1)  
 
         # plot button

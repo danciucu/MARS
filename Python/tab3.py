@@ -33,9 +33,41 @@ class Tab3(ttkthemes.ThemedTk):
         self.csv_button = tkinter.ttk.Button(self.tab3, text = "Generate CSV file", command = self.generate_csv)
         self.csv_button.pack()
 
-        # error message
+        # csv error message
         self.csv_error = tkinter.ttk.Label(self.tab3, text = "Error: Nothing yet!", foreground = "#f5f4f2")
         self.csv_error.pack()
+
+        # pier frame
+        self.pier_frame = tkinter.ttk.Frame(self.tab3)
+        self.pier_frame.pack()
+
+        ## pier height text
+        self.pier_height_label1 = tkinter.ttk.Label(self.pier_frame, text = "Pier Height :")
+        self.pier_height_label1.grid(row = 0, column = 0)
+
+        ## pier height entry box
+        self.pier_height_entry = tkinter.ttk.Entry(self.pier_frame, width = 10, justify = 'center')
+        self.pier_height_entry.grid(row = 0, column = 1)
+        
+        ## pier height units
+        self.pier_height_label2 = tkinter.ttk.Label(self.pier_frame, text = "mm")
+        self.pier_height_label2.grid(row = 0, column = 2)
+
+        ## pier width text
+        self.pier_width_label1 = tkinter.ttk.Label(self.pier_frame, text = "Pier Width :")
+        self.pier_width_label1.grid(row = 1, column = 0)
+
+        ## pier width entry box
+        self.pier_width_entry = tkinter.ttk.Entry(self.pier_frame, width = 10, justify = 'center')
+        self.pier_width_entry.grid(row = 1, column = 1)
+        
+        ## pier width units
+        self.pier_width_label2 = tkinter.ttk.Label(self.pier_frame, text = "mm")
+        self.pier_width_label2.grid(row = 1, column = 2)
+
+        # pier error message
+        self.pier_error = tkinter.ttk.Label(self.tab3, text = "Error: Please input a rational number!", foreground = "#f5f4f2")
+        self.pier_error.pack()
 
         # CAD generate button
         self.cad_button = tkinter.ttk.Button(self.tab3, text = "Generate AutoCAD drawing", command = self.generate_cad)
@@ -60,27 +92,40 @@ class Tab3(ttkthemes.ThemedTk):
                 writer.writerow([globalvars.array_x[i], globalvars.array_y[i]])
     
     def generate_cad(self):
-        # update units for the x and y coordinates
-        array_x_units = [elements * globalvars.units_coef for elements in globalvars.array_x]
-        array_y_units = [elements * globalvars.units_coef for elements in globalvars.array_y]
-        # recreate the magnified shape
-        polynome = np.polyfit(array_x_units, array_y_units, globalvars.user_degree)
-        p = np.poly1d(polynome)
-        # prepare the location of the points for AutoCAD draw
-        for i in range(globalvars.no):
-            globalvars.points_x[i] = i * max(array_x_units) / 8
-            globalvars.points_y[i] = p(globalvars.points_x[i])
-            globalvars.points_xyz[i * 3] =globalvars. points_x[i]
-            if i != globalvars.no - 1:
-                globalvars.points_xyz[(i * 3) + 1] = globalvars.points_y[i]
-                globalvars.points_xyz[(i * 3) + 2] = 0 
-        # open the AutoCAD file
-        AutoCAD = win32com.client.Dispatch("AutoCAD.Application")
-        # variable to refer to the app
-        acad = pyautocad.Autocad(create_if_not_exists = False)
-        # aDouble returns array.array of doubles (‘d’ code) for passing to AutoCAD
-        p1 = pyautocad.aDouble(globalvars.points_xyz)
-        # create a spline through the points of interest with 0 curvature at the ends
-        sp1 = acad.model.AddSpline(p1, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))
-        # ???
-        AutoCAD.Visible = True
+        test = False
+        # hide the pier error 
+        self.pier_error.config(foreground = "#f5f4f2")
+        # check if the pier height & width are float() data type
+        try: 
+            pier_height = float(self.pier_height_entry.get())
+            pier_width = float(self.pier_width_entry.get())
+            test = True
+        except ValueError:
+            self.pier_error.config(foreground = "black")
+
+        if test == True:
+            # update units for the x and y coordinates
+            array_x_units = [elements * globalvars.units_coef for elements in globalvars.array_x]
+            array_y_units = [elements * globalvars.units_coef for elements in globalvars.array_y]
+            # recreate the magnified shape
+            polynome = np.polyfit(array_x_units, array_y_units, globalvars.user_degree)
+            p = np.poly1d(polynome)
+            # prepare the location of the points for AutoCAD draw
+            for i in range(globalvars.no):
+                globalvars.points_x[i] = i * max(array_x_units) / 8 
+                globalvars.points_y[i] = p(globalvars.points_x[i]) 
+                globalvars.points_xyz[i * 3] = globalvars.points_x[i] + pier_width
+                globalvars.points_xyz[i * 3 + 1] = globalvars.points_y[i] + pier_height
+                globalvars.points_xyz[i * 3 + 2] = 0
+                if i == globalvars.no - 1:
+                    globalvars.points_xyz[(i * 3) + 1] = int(self.pier_height_entry.get())
+
+            # open the AutoCAD file
+            AutoCAD = win32com.client.Dispatch("AutoCAD.Application")
+            AutoCAD.Visible = True
+            # variable to refer to the app
+            acad = pyautocad.Autocad(create_if_not_exists = False)
+            # aDouble returns array.array of doubles (‘d’ code) for passing to AutoCAD
+            p1 = pyautocad.aDouble(globalvars.points_xyz)
+            # create a spline through the points of interest with 0 curvature at the ends
+            sp1 = acad.model.AddSpline(p1, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))

@@ -125,7 +125,25 @@ class Tab3(ttkthemes.ThemedTk):
             AutoCAD.Visible = True
             # variable to refer to the app
             acad = pyautocad.Autocad(create_if_not_exists = False)
+            # set of points for pier width
+            p_width1 = pyautocad.APoint(0, 0)
+            p_width2 = pyautocad.APoint(pier_width, 0)
+            p_width3 = pyautocad.APoint(max(globalvars.points_x) + pier_width, 0)
+            p_width4 = pyautocad.APoint(max(globalvars.points_x) + 2 * pier_width, 0)
+            # set of points for pier height
+            p_height1 = pyautocad.APoint(0, pier_height)
+            p_height2 = pyautocad.APoint(pier_width, pier_height)
+            p_height3 = pyautocad.APoint(max(globalvars.points_x) + pier_width, pier_height)
+            p_height4 = pyautocad.APoint(max(globalvars.points_x) + 2 * pier_width, pier_height)
+            # pier lines
+            line_width1 = acad.model.AddLine(p_width1, p_width2)
+            line_width2 = acad.model.AddLine(p_width3, p_width4)
+            line_height1 = acad.model.AddLine(p_width1, p_height1)
+            line_height2 = acad.model.AddLine(p_width2, p_height2)
+            line_height3 = acad.model.AddLine(p_width3, p_height3)
+            line_height4 = acad.model.AddLine(p_width4, p_height4)
             # aDouble returns array.array of doubles (‘d’ code) for passing to AutoCAD
-            p1 = pyautocad.aDouble(globalvars.points_xyz)
+            p1_arch = pyautocad.aDouble(globalvars.points_xyz)
             # create a spline through the points of interest with 0 curvature at the ends
-            sp1 = acad.model.AddSpline(p1, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))
+            sp1 = acad.model.AddSpline(p1_arch, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))
+            sp2 = sp1.Offset(-700.0)

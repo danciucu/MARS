@@ -94,14 +94,16 @@ class Tab3(ttkthemes.ThemedTk):
     def generate_csv(self):
         # get the file path
         csv_path = self.input_entry.get()
+        # interpolate for the nine points of interest
+        self.interp_nine_points(globalvars.array_x, globalvars.array_y, 0, 0)
         # create a CSV file named "Arch 1"
         with open(csv_path + "/Arch1.csv", "w", newline = "") as my_csv:
             writer = csv.writer(my_csv)
             # name the first row as X [units] and Y [units]
             writer.writerow(["X [" + globalvars.user_units + "]", "Y [" + globalvars.user_units + "]"])
-            for i in range(globalvars.count):
+            for i in range(globalvars.no):
                 # add the values
-                writer.writerow([globalvars.array_x[i], globalvars.array_y[i]])
+                writer.writerow([globalvars.points_x[i], globalvars.points_y[i]])
     
     def generate_cad(self):
         test = False
@@ -120,19 +122,8 @@ class Tab3(ttkthemes.ThemedTk):
             # update units for the x and y coordinates
             array_x_units = [elements * globalvars.units_coef for elements in globalvars.array_x]
             array_y_units = [elements * globalvars.units_coef for elements in globalvars.array_y]
-            # recreate the magnified shape
-            polynome = np.polyfit(array_x_units, array_y_units, globalvars.user_degree)
-            p = np.poly1d(polynome)
-            # prepare the location of the points for AutoCAD draw
-            for i in range(globalvars.no):
-                globalvars.points_x[i] = i * max(array_x_units) / 8 
-                globalvars.points_y[i] = p(globalvars.points_x[i]) 
-                globalvars.points_xyz[i * 3] = globalvars.points_x[i] + pier_width
-                globalvars.points_xyz[i * 3 + 1] = globalvars.points_y[i] + pier_height
-                globalvars.points_xyz[i * 3 + 2] = 0
-                if i == globalvars.no - 1:
-                    globalvars.points_xyz[(i * 3) + 1] = int(self.pier_height_entry.get())
-
+            # interpolate for the nine points of interest
+            self.interp_nine_points(array_x_units, array_y_units, pier_width, pier_height)
             # open the AutoCAD file
             AutoCAD = win32com.client.Dispatch("AutoCAD.Application")
             AutoCAD.Visible = True
@@ -159,4 +150,27 @@ class Tab3(ttkthemes.ThemedTk):
             p1_arch = pyautocad.aDouble(globalvars.points_xyz)
             # create a spline through the points of interest with 0 curvature at the ends
             sp1 = acad.model.AddSpline(p1_arch, pyautocad.APoint(0, 0, 0),  pyautocad.APoint(0, 0, 0))
-            sp2 = sp1.Offset(-arch_barrel)
+            try:
+                sp2 = sp1.Offset(-arch_barrel)
+            except:
+                pass
+
+            t1 = acad.model.AddText(globalvars.points_x[4], p_height4, globalvars.units_coef / 10)
+        
+    def interp_nine_points(self, array_x_units, array_y_units, pier_width, pier_height):
+        # reset the global variables
+        globalvars.points_x = [0] * globalvars.no
+        globalvars.points_y = [0] * globalvars.no
+        globalvars.points_xyz = [0] * globalvars.no * 3
+        # recreate the magnified shape
+        polynome = np.polyfit(array_x_units, array_y_units, globalvars.user_degree)
+        p = np.poly1d(polynome)
+        # prepare the location of the points for AutoCAD draw
+        for i in range(globalvars.no):
+            globalvars.points_x[i] = i * max(array_x_units) / 8 
+            globalvars.points_y[i] = p(globalvars.points_x[i]) 
+            globalvars.points_xyz[i * 3] = globalvars.points_x[i] + pier_width
+            globalvars.points_xyz[i * 3 + 1] = globalvars.points_y[i] + pier_height
+            globalvars.points_xyz[i * 3 + 2] = 0
+            if i == globalvars.no - 1:
+                globalvars.points_xyz[(i * 3) + 1] = int(self.pier_height_entry.get())

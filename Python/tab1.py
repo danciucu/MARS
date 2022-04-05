@@ -2,6 +2,7 @@ import tkinter, tkinter.filedialog, ttkthemes
 
 import pandas as pd
 import ezdxf
+import math
 
 import globalvars
 
@@ -241,10 +242,6 @@ class Tab1(ttkthemes.ThemedTk):
             origin_x = 0
             origin_y = 0
             origin_z = 0
-            # variables to store the second element after positioning again to origin
-            second_x = 0
-            second_y = 0
-            second_z = 0
             
             # populate local arrays with the values of the points
             for point in query:
@@ -256,28 +253,13 @@ class Tab1(ttkthemes.ThemedTk):
                     origin_x = array_x[0]
                     origin_y = array_y[0]
                     origin_z = array_z[0]
-                # set up the second element
-                if count == 1:
-                    second_x = array_x[count] - origin_x
-                    second_y = array_y[count] - origin_y
-                    second_z = array_z[count] - origin_z
-                # check the sign of second element and swich the sign if negative
                 # set the local arrays to the origin and start with (0, 0, 0)
                 ## for array_x
-                if second_x < 0:
-                    array_x[count] = -(array_x[count] - origin_x)
-                else:
-                    array_x[count] = array_x[count] - origin_x
+                array_x[count] = abs(array_x[count] - origin_x)
                 ## for array_y
-                if second_y < 0:
-                    array_y[count] = -(array_y[count] - origin_y)
-                else:
-                    array_y[count] = array_y[count] - origin_y
+                array_y[count] = abs(array_y[count] - origin_y)
                 ## for array_z
-                if second_z < 0:
-                    array_z[count] = -(array_z[count] - origin_z)
-                else:
-                    array_z[count] = array_z[count] - origin_z
+                array_z[count] = abs(array_z[count] - origin_z)
                 
                 count += 1
 
@@ -285,20 +267,29 @@ class Tab1(ttkthemes.ThemedTk):
             globalvars.count = count
 
             # check for the final element and if it's the biggest from all arrays, then that's globalvars.array_x
-            if (abs(array_x[globalvars.count - 1]) > abs(array_y[globalvars.count - 1])) and (abs(array_x[globalvars.count - 1]) > abs(array_z[globalvars.count - 1])):
+            if (array_x[globalvars.count - 1] > array_y[globalvars.count - 1]) and (array_x[globalvars.count - 1] > array_z[globalvars.count - 1]):
                 globalvars.array_x = array_x
-            elif (abs(array_y[globalvars.count - 1]) > abs(array_x[globalvars.count - 1])) and (abs(array_y[globalvars.count - 1]) > abs(array_z[globalvars.count - 1])):
+                globalvars.array_z = array_y
+            elif (array_y[globalvars.count - 1] > array_x[globalvars.count - 1]) and (array_y[globalvars.count - 1] > array_z[globalvars.count - 1]):
                 globalvars.array_x = array_y
+                globalvars.array_z = array_x
             else:
                 globalvars.array_x = array_z
 
             # check if first and last elements are equal and next pair is not equal, then that's globalvars.array_y
             if int(array_x[0]) == int(array_x[globalvars.count - 1])  and int(array_x[1]) != int(array_x[globalvars.count - 2]):
                 globalvars.array_y = array_x
+                globalvars.array_z = array_y
             elif int(array_y[0]) == int(array_y[globalvars.count - 1]) and int(array_y[1]) != int(array_y[globalvars.count - 2]):
                 globalvars.array_y = array_y
+                globalvars.array_z = array_x
             else:
                 globalvars.array_y = array_z
+            
+            # calculate the angle of the span
+            angle = math.atan((max(globalvars.array_z) + min(globalvars.array_z)) / (max(globalvars.array_x) + min(globalvars.array_x)))
+            # correct the span length
+            globalvars.array_x = [elements / math.cos(angle) for elements in globalvars.array_x]
 
         except OSError:
             # if not DXF then CSV and open the csv fie
